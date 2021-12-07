@@ -58,37 +58,35 @@ void loop() {
 // Print to serial monitor.
     
   Serial.println(temp());
-
-  delay(1000);
 }
 
 /******************************
    Temperature Read Method
  ******************************/
-int temp(){
+double temp(){
   
   // Defines c and f as a decimal digit
-   float c = thermocouple.readCelsius();
-   float f = thermocouple.readFahrenheit();
+   double c = thermocouple.readCelsius();
+   double f = thermocouple.readFahrenheit();
   
   //Testing purposes
    
     // Raw reading of thermocouple in Celsius
     //Serial.print("Raw Reading: C = ");
     //Serial.println(c);
-    //float CurrentTemp = c;
+    //double CurrentTemp = c;
     
     // Corrected reading of thermocouple in Celsius
     //Serial.print("Corrected Reading: C =");
-    //float CurrentTemp = float((((c-RawLowC)*RefRangeC)/RawRangeC)+RefLowC);
+    //double CurrentTemp = float((((c-RawLowC)*RefRangeC)/RawRangeC)+RefLowC);
     
     // Raw reading of thermocouple in Fahrenheit
     //Serial.print("Raw Reading: F = ");
     //Serial.println(f);
-    //float CurrentTemp = f;
+    //double CurrentTemp = f;
   
   // Corrected reading of thermocouple in Fahrenheit set to CurrentTemp variable.
-  float CurrentTemp = float((((f - RawLowF) * RefRangeF) / RawRangeF) + RefLowF);
+  double CurrentTemp = double((((f - RawLowF) * RefRangeF) / RawRangeF) + RefLowF);
   
   return CurrentTemp;
 }
