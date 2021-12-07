@@ -8,7 +8,7 @@ backgroundReproduceBeep=false
 backgroundPlaybackEvents=false
 backgroundPlaybackDROP=false
 replayType=0
-Phases=300, 300, 390, 450
+Phases=300, 80, 80, 450
 phasesbuttonflag=true
 phasesfromBackgroundflag=false
 watermarks=false
@@ -85,7 +85,7 @@ roastersize_setup=0
 roasterheating_setup=0
 drumspeed_setup=
 profilepath=C:/Users/Ethan Robinson/Git/Coffee.Read-Temperature/
-settingspath=C:/Users/Ethan Robinson/Git/Coffee.Read-Temperature/artisan-settings_arduino-thermocouple.aset
+settingspath=C:/Users/Ethan Robinson/Git/Coffee.Read-Temperature/artisan-settings.aset
 wheelpath=
 autosavepath=
 autosavealsopath=
@@ -662,7 +662,7 @@ loadAxisFromProfile=false
 xmin=-30
 xmax=600
 ymax=500
-ymin=100
+ymin=0
 zmax=45
 zmin=0
 resetmaxtime=600
@@ -671,8 +671,8 @@ locktimex=false
 autotimex=true
 autodeltaxET=false
 autodeltaxBT=false
-locktimex_start=-30
-locktimex_end=600
+locktimex_start=-59
+locktimex_end=121
 legendloc=7
 chargemintime=-30
 temp_grid=false
@@ -868,7 +868,7 @@ RoRlimitm=-95
 
 [grid]
 xgrid=120
-ygrid=100
+ygrid=50
 zgrid=10
 gridlinestyle=0
 gridthickness=1
@@ -901,9 +901,9 @@ clusterEventsFlag=false
 
 [Batch]
 batchcounter=-1
-batchsequence=1
+batchsequence=2
 batchprefix=
-lastroastepoch=1638833816
+lastroastepoch=1638836856
 neverUpdateBatchCounter=0
 
 [ExtrasMoreInfo]
