@@ -2,7 +2,7 @@
 import serial
 
 # Establish list of likely COM ports.
-portList = ["COM3", "COM4", "COM5"]
+portList = ["COM3", "COM4", "COM5", "COM6"]
 
 # Attempt to read from Arduino, but do not throw an error if unable.
 try:
