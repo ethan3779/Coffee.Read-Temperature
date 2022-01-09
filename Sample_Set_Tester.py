@@ -6,7 +6,7 @@ port_list = ["COM3", "COM4", "COM5", "COM6"]
 # Establish baud rate utilized.
 baud = 9600
 
-# Execute function to get temperature from Arduino, and output the results.
-temperature = read_port_data(port_list, baud)
+while True:
+    temperature = read_port_data(port_list, baud)
+    print(temperature)
 
-print(float(temperature))
