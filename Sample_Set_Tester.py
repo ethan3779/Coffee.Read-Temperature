@@ -1,8 +1,26 @@
-import asyncio
-import sys
+import datetime
+import os
+from signal import signal, SIGINT
 import statistics
+import sys
 import time
 from Read_Port import read_port_data
+
+
+# Define a function to stop the script when a keyboard interruption takes place.
+def handler(signal_received, frame):
+    # Notify user of termination of script.
+    os.system("cls")
+    print("** Terminated by User **")
+
+    # Print final output to the screen.
+    print("\n")
+    print(f"Number of Data Points Analyzed: {num_data_point}")
+    print(f"Number of Errors and Values: {num_errors} - {all_error_list}")
+    print(f"Error Rate: {(num_errors / num_data_point) * 100}%")
+
+    # Stop script
+    return sys.exit(0)
 
 
 # Define a function to determine whether there is an outlier in a sample set list.
@@ -54,30 +72,67 @@ def get_outlier(sample_set: list):
     return result_list
 
 
-# Establish list of likely COM ports and baud rate utilized.
+def get_hour_diff(start_time: datetime, end_time: datetime):
+    """
+    Function returns the number of hours between two given datetimes.
+    :param start_time: Datetime
+    :param end_time: Datetime
+    :return: float
+    """
+    sec_diff = end_time - start_time
+
+    hour_diff = sec_diff.total_seconds() / 60 / 60
+
+    return float(hour_diff)
+
+
+# try:
+
+signal(SIGINT, handler)
+
+# Set threshold values where script will continue to execute until met.
+hours_to_run = 6
+data_points_to_analyze = 1000000
+allowed_failed_reads = 5
+
+# Set the start time and current time.
+start_time = datetime.datetime.now()
+current_time = start_time
+
+# Establish list of likely COM ports, baud rate utilized, and number of failed reads tolerated.
 port_list = ["COM3", "COM4", "COM5", "COM6"]
 baud = 9600
 
-# Set the output counts to zero.
+# Set the counts to zero.
 num_data_point = 0
 num_errors = 0
+failed_reads = 0
 
 # Establish sample size and increment collected.
-sample_size = 20
-seconds_increment = 3
+sample_size = 5
+seconds_increment = 0
 
 # Create a list for temperatures and add the number of temperatures equivalent to the sample size.
 all_error_list = []
 
-# Continually execute until stopped.
-while True:
+# Execute while thresholds have not yet been met and script is not failing to read the device.
+while get_hour_diff(start_time, current_time) <= hours_to_run and num_data_point <= data_points_to_analyze:
     # Create a list for temperatures and add the number of temperatures equivalent to the sample size.
     temperature_sample_list = []
 
     # Add ten data points to the temperature list for analysis.
-    while len(temperature_sample_list) < sample_size:
-        temperature = read_port_data(port_list, baud)
-        temperature_sample_list.append(float(temperature))
+    while len(temperature_sample_list) < sample_size and failed_reads <= allowed_failed_reads:
+        try:
+            # Pull reading from device and add it to sample set.
+            temperature = read_port_data(port_list, baud)
+            temperature_sample_list.append(float(temperature))
+            failed_reads = 0
+        except:
+            failed_reads = failed_reads + 1
+            if failed_reads == allowed_failed_reads:
+                print("Exiting... Unable to read device.")
+                sys.exit(1)
+            pass
 
     # Increment the total number of data points pulled for sampling.
     num_data_point = num_data_point + len(temperature_sample_list)
@@ -88,8 +143,28 @@ while True:
         num_errors = num_errors + len(get_outlier(temperature_sample_list))
         all_error_list.append(get_outlier(temperature_sample_list))
 
-    # Print the output to the screen.
-    print(f"Number of Data Points Analyzed: {num_data_point} - {temperature_sample_list}")
-    print(f"Number of Errors: {num_errors} - {all_error_list}")
-    print(f"Error Rate: {(num_errors / num_data_point) * 100}%")
+    # Update the current time.
+    current_time = datetime.datetime.now()
 
+    # Limit output to only update when number of data points analyzed are divisible by a defined number.
+    if num_data_point % 10 == 0:
+        # Print the output to the screen.
+        os.system("cls")
+        print(f"Time in Progress: {current_time - start_time}")
+        print(f"Number of Data Points Analyzed: {num_data_point}")
+        print(f"Number of Errors and Values: {num_errors} - {all_error_list}")
+        print(f"Error Rate: {(num_errors / num_data_point) * 100}%")
+
+    # Set delay
+    time.sleep(seconds_increment)
+#
+# except KeyboardInterrupt:
+#     os.system("cls")
+#     print("** Terminated by User **")
+#
+# finally:
+#     # Print the output to the screen.
+#     print("\n")
+#     print(f"Number of Data Points Analyzed: {num_data_point}")
+#     print(f"Number of Errors and Values: {num_errors} - {all_error_list}")
+#     print(f"Error Rate: {(num_errors / num_data_point) * 100}%")
