@@ -15,6 +15,7 @@ def handler(signal_received, frame):
 
     # Print final output to the screen.
     print("\n")
+    print(f"Time Duration: {current_time - start_time}")
     print(f"Number of Data Points Analyzed: {num_data_point}")
     print(f"Number of Errors and Values: {num_errors} - {all_error_list}")
     print(f"Error Rate: {(num_errors / num_data_point) * 100}%")
@@ -157,6 +158,14 @@ while get_hour_diff(start_time, current_time) <= hours_to_run and num_data_point
 
     # Set delay
     time.sleep(seconds_increment)
+
+# Print final output to the screen.
+os.system("cls")
+print(f"Total Time: {current_time - start_time}")
+print(f"Number of Data Points Analyzed: {num_data_point}")
+print(f"Number of Errors and Values: {num_errors} - {all_error_list}")
+print(f"Error Rate: {(num_errors / num_data_point) * 100}%")
+
 #
 # except KeyboardInterrupt:
 #     os.system("cls")
