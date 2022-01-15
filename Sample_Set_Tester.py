@@ -18,58 +18,41 @@ def handler(signal_received, frame):
     print(f"Time Duration: {current_time - start_time}")
     print(f"Number of Data Points Analyzed: {num_data_point}")
     print(f"Number of Errors and Values: {num_errors} - {all_error_list}")
+    print(f"Median Value during Error: {all_median_list}")
     print(f"Error Rate: {(num_errors / num_data_point) * 100}%")
 
     # Stop script
     return sys.exit(0)
 
 
-# Define a function to determine whether there is an outlier in a sample set list.
-def contains_outlier(sample_set: list):
-    """
-    Function determines whether or not a sample set list contains an outlier. If this is the case, the function will
-    return True. Otherwise, False is returned.
-    :param sample_set: list of floats or integers
-    :return: boolean
-    """
-    # Determine minimum, maximum, mean, and standard deviation of the sample set.
-    min_value = min(sample_set)
-    max_value = max(sample_set)
-    mean_value = statistics.mean(sample_set)
-    std_dev = statistics.stdev(sample_set)
-
-    # Attempt to identify outlier in sample set
-    if (mean_value - min_value > std_dev) or (max_value - mean_value > std_dev):
-        return True
-    else:
-        return False
-
-
-def get_outlier(sample_set: list):
+def get_outlier(sample_set: list, percent_of_error: int = 10):
     """
     Function determines the outlier(s), if applicable, in a sample set and returns it. If there is no outlier, the
-    function returns None.
+    function returns an empty list.
     :param sample_set: list of floats or integers
     :return: list
     """
-    # Establish the standard deviation multiplier which will be used to consider what is an error.
-    num_std_dev = 2
-
-    # Determine minimum, maximum, mean, and standard deviation of the sample set.
-    min_value = min(sample_set)
-    max_value = max(sample_set)
-    mean_value = statistics.mean(sample_set)
-    std_dev = statistics.stdev(sample_set)
-
     # Establish an empty list for results
     result_list = []
 
-    # Attempt to identify outlier in sample set
-    if mean_value - min_value > std_dev * num_std_dev:
-        result_list.append(min_value)
-    if max_value - mean_value > std_dev * num_std_dev:
-        result_list.append(max_value)
+    # Determine median of sample set
+    median_value = statistics.median(sample_set)
 
+    # Establish margin of error percentage and top and bottom of allowable range
+    if percent_of_error < 0 or percent_of_error > 100:
+        percent_of_error = 10
+    error_margin = percent_of_error / 100
+    min_acceptable_value = median_value - (median_value * error_margin)
+    max_acceptable_value = median_value + (median_value * error_margin)
+
+    # Determine if extremes of sample set are outside of the margin of error
+    for sample in sample_set:
+        if sample < min_acceptable_value:
+            result_list.append(sample)
+        if sample > max_acceptable_value:
+            result_list.append(sample)
+
+    # Return results
     return result_list
 
 
@@ -113,8 +96,9 @@ failed_reads = 0
 sample_size = 5
 seconds_increment = 0
 
-# Create a list for temperatures and add the number of temperatures equivalent to the sample size.
+# Create an empty list to hold any outlier values and another to hold the medians during time of error.
 all_error_list = []
+all_median_list = []
 
 # Execute while thresholds have not yet been met and script is not failing to read the device.
 while get_hour_diff(start_time, current_time) <= hours_to_run and num_data_point <= data_points_to_analyze:
@@ -129,9 +113,17 @@ while get_hour_diff(start_time, current_time) <= hours_to_run and num_data_point
             temperature_sample_list.append(float(temperature))
             failed_reads = 0
         except:
+            num_errors = num_errors + 1
+            all_error_list.append(None)
             failed_reads = failed_reads + 1
             if failed_reads == allowed_failed_reads:
                 print("Exiting... Unable to read device.")
+                # Print final output to the screen.
+                print(f"Total Time: {current_time - start_time}")
+                print(f"Number of Data Points Analyzed: {num_data_point}")
+                print(f"Number of Errors and Values: {num_errors} - {all_error_list}")
+                print(f"Median Value during Error: {all_median_list}")
+                print(f"Error Rate: {(num_errors / num_data_point) * 100}%")
                 sys.exit(1)
             pass
 
@@ -140,9 +132,14 @@ while get_hour_diff(start_time, current_time) <= hours_to_run and num_data_point
 
     # Identify any outliers and if any are found, increment the total number of errors count and add the data point
     # to the error list.
-    if len(get_outlier(temperature_sample_list)) > 0:
-        num_errors = num_errors + len(get_outlier(temperature_sample_list))
-        all_error_list.append(get_outlier(temperature_sample_list))
+    outlier_list = get_outlier(temperature_sample_list, 10)
+
+    if len(outlier_list) > 0:
+        num_errors = num_errors + len(outlier_list)
+        for error in outlier_list:
+            all_error_list.append(error)
+
+        all_median_list.append(statistics.median(temperature_sample_list))
 
     # Update the current time.
     current_time = datetime.datetime.now()
@@ -154,6 +151,7 @@ while get_hour_diff(start_time, current_time) <= hours_to_run and num_data_point
         print(f"Time in Progress: {current_time - start_time}")
         print(f"Number of Data Points Analyzed: {num_data_point}")
         print(f"Number of Errors and Values: {num_errors} - {all_error_list}")
+        print(f"Median Value during Error: {all_median_list}")
         print(f"Error Rate: {(num_errors / num_data_point) * 100}%")
 
     # Set delay
@@ -161,9 +159,12 @@ while get_hour_diff(start_time, current_time) <= hours_to_run and num_data_point
 
 # Print final output to the screen.
 os.system("cls")
+print("Final Results")
+print("\n")
 print(f"Total Time: {current_time - start_time}")
 print(f"Number of Data Points Analyzed: {num_data_point}")
 print(f"Number of Errors and Values: {num_errors} - {all_error_list}")
+print(f"Median Value during Error: {all_median_list}")
 print(f"Error Rate: {(num_errors / num_data_point) * 100}%")
 
 #
