@@ -147,7 +147,7 @@ void loop() {
     double maxAcceptableTemp;
 
     // Validation to ensure output temperature is not error
-    while (true) {
+    while (Serial) {
       // Set minimum and maximum acceptable values
       if (previousTemp < 0) {
           minAcceptableTemp = previousTemp + (previousTemp * marginOfError);
@@ -169,5 +169,11 @@ void loop() {
           Serial.println(currentTemp);
           previousTemp = currentTemp;
       }
+
+      // Delay avoids partial temperature readings from being returned,
+      // and causing errors. For example, without it, the temperature
+      // 85.11 may be the temperature, and the next temperature reading
+      // will display 11.00.
+      delay(0250);    // quarter of a second
     }
 }
