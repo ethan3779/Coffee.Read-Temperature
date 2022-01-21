@@ -75,7 +75,7 @@ def get_hour_diff(start_time: datetime, end_time: datetime):
 signal(SIGINT, handler)
 
 # Set threshold values where script will continue to execute until met.
-hours_to_run = 6
+hours_to_run = 3
 data_points_to_analyze = 1000000
 allowed_failed_reads = 5
 
@@ -96,9 +96,11 @@ failed_reads = 0
 sample_size = 5
 seconds_increment = 0
 
-# Create an empty list to hold any outlier values and another to hold the medians during time of error.
+# Create an empty lists to hold any outlier values, medians during time of error, and margins of error during time
+# of error.
 all_error_list = []
 all_median_list = []
+all_margin_of_error_list = []
 
 # Execute while thresholds have not yet been met and script is not failing to read the device.
 while get_hour_diff(start_time, current_time) <= hours_to_run and num_data_point <= data_points_to_analyze:
@@ -123,6 +125,7 @@ while get_hour_diff(start_time, current_time) <= hours_to_run and num_data_point
                 print(f"Number of Data Points Analyzed: {num_data_point}")
                 print(f"Number of Errors and Values: {num_errors} - {all_error_list}")
                 print(f"Median Value during Error: {all_median_list}")
+                print(f"Average Margin of Error: {avg_margin_or_error}%")
                 print(f"Error Rate: {(num_errors / num_data_point) * 100}%")
                 sys.exit(1)
             pass
@@ -135,11 +138,20 @@ while get_hour_diff(start_time, current_time) <= hours_to_run and num_data_point
     outlier_list = get_outlier(temperature_sample_list, 10)
 
     if len(outlier_list) > 0:
+        current_median = statistics.median(temperature_sample_list)
         num_errors = num_errors + len(outlier_list)
         for error in outlier_list:
             all_error_list.append(error)
+            margin_of_error = 100 - ((error * 100) / current_median)
+            all_margin_of_error_list.append(margin_of_error)
 
-        all_median_list.append(statistics.median(temperature_sample_list))
+        all_median_list.append(current_median)
+
+    # Calculate average margin of error
+    if len(all_margin_of_error_list) > 0:
+        avg_margin_or_error = statistics.mean(all_margin_of_error_list)
+    else:
+        avg_margin_or_error = 0.00
 
     # Update the current time.
     current_time = datetime.datetime.now()
@@ -152,6 +164,7 @@ while get_hour_diff(start_time, current_time) <= hours_to_run and num_data_point
         print(f"Number of Data Points Analyzed: {num_data_point}")
         print(f"Number of Errors and Values: {num_errors} - {all_error_list}")
         print(f"Median Value during Error: {all_median_list}")
+        print(f"Average Margin of Error: {avg_margin_or_error}%")
         print(f"Error Rate: {(num_errors / num_data_point) * 100}%")
 
     # Set delay
@@ -165,6 +178,7 @@ print(f"Total Time: {current_time - start_time}")
 print(f"Number of Data Points Analyzed: {num_data_point}")
 print(f"Number of Errors and Values: {num_errors} - {all_error_list}")
 print(f"Median Value during Error: {all_median_list}")
+print(f"Average Margin of Error: {avg_margin_or_error}%")
 print(f"Error Rate: {(num_errors / num_data_point) * 100}%")
 
 #
